@@ -7,11 +7,11 @@ class Program
     static int screenHeight = 25;  
     static int ballX = screenWidth / 2;   
     static int ballY = screenHeight / 2;  
-    static int ballSpeedX = 1;    
+    static int ballSpeedX = 1;   
     static int ballSpeedY = 1;    
     static int score = 0;        
-    static bool isPlaying = false;  
-
+    static bool isPlaying = false; 
+    static Random random = new Random(); 
     static void Main(string[] args)
     {
         Console.CursorVisible = false;  
@@ -23,9 +23,9 @@ class Program
         {
             if (isPlaying)
             {
-                UpdateBallPosition(); 
-                DrawBall(); 
-                DrawScore(); 
+                UpdateBallPosition();  
+                DrawBall();  
+                DrawScore();  
                 Thread.Sleep(50);  
                 Console.Clear();  
             }
@@ -57,18 +57,33 @@ class Program
         ballX += ballSpeedX;  
         ballY += ballSpeedY;  
 
-       
+        
         if (ballX <= 0 || ballX >= screenWidth - 1)
             ballSpeedX = -ballSpeedX;  
-
         if (ballY <= 0 || ballY >= screenHeight - 1)
-            ballSpeedY = -ballSpeedY;  
+            ballSpeedY = -ballSpeedY; 
 
         
         if (ballY == screenHeight - 2 && ballX >= 0 && ballX <= 10)
         {
             score++;  
             ballSpeedY = -ballSpeedY;  
+
+            
+            GeneratePlatform();
+        }
+    }
+
+    static void GeneratePlatform()
+    {
+        int platformWidth = random.Next(5, 10);  
+        int platformX = random.Next(1, screenWidth - platformWidth - 1); 
+
+        
+        for (int x = platformX; x < platformX + platformWidth; x++)
+        {
+            Console.SetCursorPosition(x, screenHeight - 2);
+            Console.Write("=");
         }
     }
 
@@ -91,7 +106,9 @@ class Program
         ballSpeedX = 1;
         ballSpeedY = 1;
         score = 0;
+
+        Console.Clear();  
+        GeneratePlatform();  
     }
 }
-
 
