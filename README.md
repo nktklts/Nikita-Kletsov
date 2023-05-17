@@ -1,98 +1,79 @@
 using System;
-using System.Collections.Generic;
-using System.Net;
-using System.Net.Sockets;
-using System.Text;
-using System.Threading;
-public class RelayServer
+
+class Calculator
 {
-    private TcpListener listener;
-    private List<ClientHandler> clients;
-
-    public RelayServer()
+    static void Main()
     {
-        clients = new List<ClientHandler>();
-    }
+        Console.WriteLine("Простой калькулятор");
 
-    public void Start(int port)
-    {
-        listener = new TcpListener(IPAddress.Any, port);
-        listener.Start();
-        Console.WriteLine("Ретранслятор запущен. Ожидание подключений...");
-
-        while (true)
+        Console.WriteLine("Введите первое число:");
+        double num1;
+        if (!double.TryParse(Console.ReadLine(), out num1))
         {
-            TcpClient client = listener.AcceptTcpClient();
-            Console.WriteLine("Подключен клиент: " + client.Client.RemoteEndPoint);
-
-            ClientHandler clientHandler = new ClientHandler(client, this);
-            clients.Add(clientHandler);
-
-            Thread clientThread = new Thread(clientHandler.HandleClient);
-            clientThread.Start();
+            Console.WriteLine("Ошибка: некорректный формат числа.");
+            return;
         }
-    }
 
-    public void BroadcastMessage(string message, ClientHandler sender)
-    {
-        foreach (ClientHandler client in clients)
+        Console.WriteLine("Введите второе число:");
+        double num2;
+        if (!double.TryParse(Console.ReadLine(), out num2))
         {
-            if (client != sender)
-            {
-                client.SendMessage(message);
-            }
+            Console.WriteLine("Ошибка: некорректный формат числа.");
+            return;
         }
-    }
 
-    public void RemoveClient(ClientHandler client)
-    {
-        clients.Remove(client);
-    }
-}
-public class ClientHandler
-{
-    private TcpClient client;
-    private RelayServer server;
-    private NetworkStream stream;
-    private byte[] buffer;
-
-    public ClientHandler(TcpClient client, RelayServer server)
-    {
-        this.client = client;
-        this.server = server;
-        buffer = new byte[4096];
-    }
-
-    public void HandleClient()
-    {
-        stream = client.GetStream();
-
-        while (true)
+        Console.WriteLine("Выберите операцию (+, -, *, /):");
+        char operation;
+        if (!char.TryParse(Console.ReadLine(), out operation))
         {
-            int bytesRead = stream.Read(buffer, 0, buffer.Length);
-            if (bytesRead <= 0)
-            {
-                server.RemoveClient(this);
+            Console.WriteLine("Ошибка: некорректный формат операции.");
+            return;
+        }
+
+        double result = 0;
+
+        switch (operation)
+        {
+            case '+':
+                result = num1 + num2;
                 break;
-            }
-
-            string message = Encoding.ASCII.GetString(buffer, 0, bytesRead);
-            Console.WriteLine("Получено сообщение от клиента: " + message);
-
-            server.BroadcastMessage(message, this);
+            case '-':
+                result = num1 - num2;
+                break;
+            case '*':
+                result = num1 * num2;
+                break;
+            case '/':
+                if (num2 != 0)
+                {
+                    result = num1 / num2;
+                }
+                else
+                {
+                    Console.WriteLine("Ошибка: деление на ноль недопустимо.");
+                    return;
+                }
+                break;
+            default:
+                Console.WriteLine("Ошибка: некорректная операция.");
+                return;
         }
 
-        client.Close();
-    }
+        Console.WriteLine("Результат: " + result);
 
-    public void SendMessage(string message)
-    {
-        byte[] bytes = Encoding.ASCII.GetBytes(message);
-        stream.Write(bytes, 0, bytes.Length);
+        Console.ReadLine();
     }
 }
-static void Main(string[] args)
+
+Console.WriteLine("Выберите цвет (red, green, blue):");
+string colorInput = Console.ReadLine();
+Color color;
+if (Enum.TryParse(colorInput, out color))
 {
-    RelayServer server = new RelayServer();
-    server.Start(8888);
+    Console.WriteLine("Выбран цвет: " + color);
 }
+else
+{
+    Console.WriteLine("Ошибка: некорректное значение цвета.");
+}
+
