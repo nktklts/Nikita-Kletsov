@@ -4,14 +4,16 @@ using System.Threading;
 
 class Program
 {
-    static int screenWidth = 80;   
+    static int screenWidth = 80;  
     static int screenHeight = 25;  
     static int ballX = screenWidth / 2;   
     static int ballY = screenHeight / 2;  
     static int ballSpeedX = 1;    
     static int ballSpeedY = 1;    
-    static int score = 0;         
+    static int score = 0;        
+    static int attempts = 0;     
     static bool isPlaying = false;  
+    static bool isPaused = false;  
     static Random random = new Random(); 
     static Stopwatch stopwatch = new Stopwatch(); 
     static string playerName = ""; 
@@ -25,11 +27,12 @@ class Program
 
         while (true)
         {
-            if (isPlaying)
+            if (isPlaying && !isPaused)
             {
-                UpdateBallPosition();  
+                UpdateBallPosition(); 
                 DrawBall();  
-                DrawScore(); 
+                DrawScore();  
+                DrawAttempts();  
                 DrawTimer();  
                 DrawHint();  
                 Thread.Sleep(50);  
@@ -47,7 +50,12 @@ class Program
                             GetPlayerName();
                         }
                         isPlaying = true;
+                        isPaused = false;
                         StartGame();
+                    }
+                    else if (key.Key == ConsoleKey.Spacebar)
+                    {
+                        isPaused = !isPaused;
                     }
                 }
             }
@@ -78,11 +86,11 @@ class Program
     static void UpdateBallPosition()
     {
         ballX += ballSpeedX;  
-        ballY += ballSpeedY; 
+        ballY += ballSpeedY;  
 
-        
+
         if (ballX <= 0 || ballX >= screenWidth - 1)
-            ballSpeedX = -ballSpeedX;  
+            ballSpeedX = -ballSpeedX; 
 
         if (ballY <= 0 || ballY >= screenHeight - 1)
             ballSpeedY = -ballSpeedY;  
@@ -91,9 +99,9 @@ class Program
         if (ballY == screenHeight - 2 && ballX >= 0 && ballX <= 10)
         {
             score++;  
-            ballSpeedY = -ballSpeedY;  
+            ballSpeedY = -ballSpeedY; 
 
-            
+
             GeneratePlatform();
         }
     }
@@ -123,6 +131,12 @@ class Program
         Console.Write("Score: " + score);
     }
 
+    static void DrawAttempts()
+    {
+        Console.SetCursorPosition(0, 0);
+        Console.Write("Attempts: " + attempts);
+    }
+
     static void DrawTimer()
     {
         Console.SetCursorPosition(screenWidth - 10, screenHeight - 1);
@@ -142,6 +156,7 @@ class Program
         ballSpeedX = 1;
         ballSpeedY = 1;
         score = 0;
+        attempts = 0;
         playerName = "";
 
         Console.Clear();  
@@ -150,7 +165,7 @@ class Program
 
     static void SaveGameState()
     {
-        string gameState = playerName + "," + score.ToString() + "," + stopwatch.Elapsed.ToString();
+        string gameState = playerName + "," + score.ToString() + "," + stopwatch.Elapsed.ToString() + "," + attempts.ToString();
         System.IO.File.WriteAllText("gamestate.txt", gameState);
     }
 
@@ -160,10 +175,11 @@ class Program
         {
             string gameState = System.IO.File.ReadAllText("gamestate.txt");
             string[] data = gameState.Split(',');
-            if (data.Length == 3)
+            if (data.Length == 4)
             {
                 playerName = data[0];
                 score = Convert.ToInt32(data[1]);
+                attempts = Convert.ToInt32(data[3]);
                 TimeSpan elapsed;
                 if (TimeSpan.TryParse(data[2], out elapsed))
                 {
