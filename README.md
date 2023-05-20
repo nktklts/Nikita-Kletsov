@@ -4,14 +4,14 @@ using System.Threading;
 
 class Program
 {
-    static int screenWidth = 80;  
+    static int screenWidth = 80;    
     static int screenHeight = 25;  
     static int ballX = screenWidth / 2;   
     static int ballY = screenHeight / 2;  
     static int ballSpeedX = 1;    
     static int ballSpeedY = 1;    
-    static int score = 0;        
-    static int attempts = 0;     
+    static int score = 0;         
+    static int attempts = 0;      
     static bool isPlaying = false;  
     static bool isPaused = false;  
     static Random random = new Random(); 
@@ -29,12 +29,13 @@ class Program
         {
             if (isPlaying && !isPaused)
             {
-                UpdateBallPosition(); 
+                UpdateBallPosition();  
                 DrawBall();  
                 DrawScore();  
                 DrawAttempts();  
                 DrawTimer();  
                 DrawHint();  
+                DrawMiniMap();  
                 Thread.Sleep(50);  
                 Console.Clear();  
             }
@@ -80,7 +81,7 @@ class Program
     static void StartGame()
     {
         ResetGame();
-        stopwatch.Start(); 
+        stopwatch.Start();
     }
 
     static void UpdateBallPosition()
@@ -90,7 +91,7 @@ class Program
 
 
         if (ballX <= 0 || ballX >= screenWidth - 1)
-            ballSpeedX = -ballSpeedX; 
+            ballSpeedX = -ballSpeedX;  
 
         if (ballY <= 0 || ballY >= screenHeight - 1)
             ballSpeedY = -ballSpeedY;  
@@ -99,9 +100,8 @@ class Program
         if (ballY == screenHeight - 2 && ballX >= 0 && ballX <= 10)
         {
             score++;  
-            ballSpeedY = -ballSpeedY; 
-
-
+            ballSpeedY = -ballSpeedY;  
+            
             GeneratePlatform();
         }
     }
@@ -149,6 +149,52 @@ class Program
         Console.Write("Hint: Try to hit the platform to score points!");
     }
 
+    static void DrawMiniMap()
+    {
+        int miniMapWidth = 20;
+        int miniMapHeight = 10;
+        int miniMapX = screenWidth - miniMapWidth - 1;
+        int miniMapY = screenHeight - miniMapHeight - 1;
+
+        Console.SetCursorPosition(miniMapX, miniMapY);
+        Console.Write("+"); 
+
+        for (int x = 0; x < miniMapWidth; x++)
+        {
+            Console.SetCursorPosition(miniMapX + x + 1, miniMapY);
+            Console.Write("-");
+        }
+
+        Console.SetCursorPosition(miniMapX + miniMapWidth, miniMapY);
+        Console.Write("+"); 
+
+        for (int y = 0; y < miniMapHeight; y++)
+        {
+            Console.SetCursorPosition(miniMapX, miniMapY + y + 1);
+            Console.Write("|");
+            Console.SetCursorPosition(miniMapX + miniMapWidth, miniMapY + y + 1);
+            Console.Write("|");
+        }
+
+        Console.SetCursorPosition(miniMapX, miniMapY + miniMapHeight + 1);
+        Console.Write("+"); 
+
+        for (int x = 0; x < miniMapWidth; x++)
+        {
+            Console.SetCursorPosition(miniMapX + x + 1, miniMapY + miniMapHeight + 1);
+            Console.Write("-");
+        }
+
+        Console.SetCursorPosition(miniMapX + miniMapWidth, miniMapY + miniMapHeight + 1);
+        Console.Write("+"); 
+
+        
+        int ballMiniMapX = (ballX * miniMapWidth) / screenWidth + miniMapX + 1;
+        int ballMiniMapY = (ballY * miniMapHeight) / screenHeight + miniMapY + 1;
+        Console.SetCursorPosition(ballMiniMapX, ballMiniMapY);
+        Console.Write("O");
+    }
+
     static void ResetGame()
     {
         ballX = screenWidth / 2;
@@ -160,7 +206,7 @@ class Program
         playerName = "";
 
         Console.Clear();  
-        GeneratePlatform(); 
+        GeneratePlatform();  
     }
 
     static void SaveGameState()
