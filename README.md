@@ -4,16 +4,17 @@ using System.Threading;
 
 class Program
 {
-    static int screenWidth = 80;    
+    static int screenWidth = 80;   
     static int screenHeight = 25;  
     static int ballX = screenWidth / 2;   
     static int ballY = screenHeight / 2;  
     static int ballSpeedX = 1;    
-    static int ballSpeedY = 1;    
+    static int ballSpeedY = 1;   
     static int score = 0;         
     static int attempts = 0;      
     static bool isPlaying = false;  
     static bool isPaused = false;  
+    static bool inShop = false;   
     static Random random = new Random(); 
     static Stopwatch stopwatch = new Stopwatch(); 
     static string playerName = ""; 
@@ -21,7 +22,7 @@ class Program
     static void Main(string[] args)
     {
         Console.CursorVisible = false;  
-        Console.SetWindowSize(screenWidth, screenHeight);  
+        Console.SetWindowSize(screenWidth, screenHeight); 
 
         ShowMainMenu();
 
@@ -35,7 +36,7 @@ class Program
                 DrawAttempts();  
                 DrawTimer();  
                 DrawHint();  
-                DrawMiniMap();  
+                DrawMiniMap(); 
                 Thread.Sleep(50);  
                 Console.Clear();  
             }
@@ -50,13 +51,52 @@ class Program
                         {
                             GetPlayerName();
                         }
-                        isPlaying = true;
-                        isPaused = false;
-                        StartGame();
+                        if (inShop)
+                        {
+                            ProcessShopInput();
+                        }
+                        else
+                        {
+                            isPlaying = true;
+                            isPaused = false;
+                            StartGame();
+                        }
                     }
                     else if (key.Key == ConsoleKey.Spacebar)
                     {
-                        isPaused = !isPaused;
+                        if (isPlaying)
+                        {
+                            isPaused = !isPaused;
+                        }
+                    }
+                    else if (key.Key == ConsoleKey.Tab)
+                    {
+                        if (isPlaying)
+                        {
+                            inShop = !inShop;
+                            if (inShop)
+                            {
+                                ShowShop();
+                            }
+                            else
+                            {
+                                ResumeGame();
+                            }
+                        }
+                    }
+                    else if (key.Key == ConsoleKey.Escape)
+                    {
+                        if (inShop)
+                        {
+                            inShop = false;
+                            ShowMainMenu();
+                        }
+                        else
+                        {
+                            isPlaying = false;
+                            isPaused = false;
+                            ShowMainMenu();
+                        }
                     }
                 }
             }
@@ -65,17 +105,15 @@ class Program
 
     static void ShowMainMenu()
     {
+        Console.Clear();
+        Console.SetCursorPosition(screenWidth / 2 - 10, screenHeight / 2 - 2);
+        Console.Write("Welcome to the Ball Game!");
         Console.SetCursorPosition(screenWidth / 2 - 10, screenHeight / 2);
-        Console.WriteLine("Welcome to the Ball Game!");
-        Console.SetCursorPosition(screenWidth / 2 - 10, screenHeight / 2 + 1);
-        Console.WriteLine("Enter your name and press Enter to start");
-    }
-
-    static void GetPlayerName()
-    {
-        Console.SetCursorPosition(screenWidth / 2 - 5, screenHeight / 2 + 2);
-        Console.Write("Name: ");
-        playerName = Console.ReadLine();
+        Console.Write("Press Enter to start");
+        Console.SetCursorPosition(screenWidth / 2 - 10, screenHeight / 2 + 2);
+        Console.Write("Press Tab for the shop");
+        Console.SetCursorPosition(screenWidth / 2 - 10, screenHeight / 2 + 4);
+        Console.Write("Press Escape to exit");
     }
 
     static void StartGame()
@@ -84,24 +122,31 @@ class Program
         stopwatch.Start();
     }
 
+    static void ResumeGame()
+    {
+        if (isPaused)
+        {
+            stopwatch.Start();
+            isPaused = false;
+        }
+    }
+
     static void UpdateBallPosition()
     {
-        ballX += ballSpeedX;  
+        ballX += ballSpeedX; 
         ballY += ballSpeedY;  
-
-
+        
         if (ballX <= 0 || ballX >= screenWidth - 1)
             ballSpeedX = -ballSpeedX;  
 
         if (ballY <= 0 || ballY >= screenHeight - 1)
             ballSpeedY = -ballSpeedY;  
 
-
         if (ballY == screenHeight - 2 && ballX >= 0 && ballX <= 10)
         {
             score++;  
             ballSpeedY = -ballSpeedY;  
-            
+
             GeneratePlatform();
         }
     }
@@ -110,7 +155,6 @@ class Program
     {
         int platformWidth = random.Next(5, 10);  
         int platformX = random.Next(1, screenWidth - platformWidth - 1);  
-
 
         for (int x = platformX; x < platformX + platformWidth; x++)
         {
@@ -139,25 +183,25 @@ class Program
 
     static void DrawTimer()
     {
-        Console.SetCursorPosition(screenWidth - 10, screenHeight - 1);
-        Console.Write("Time: " + stopwatch.Elapsed.ToString(@"mm\:ss"));
+        Console.SetCursorPosition(screenWidth - 12, 0);
+        Console.Write("Time: " + stopwatch.Elapsed.ToString("mm\\:ss"));
     }
 
     static void DrawHint()
     {
         Console.SetCursorPosition(screenWidth / 2 - 10, screenHeight - 1);
-        Console.Write("Hint: Try to hit the platform to score points!");
+        Console.Write("Press Spacebar to pause");
     }
 
     static void DrawMiniMap()
     {
-        int miniMapWidth = 20;
-        int miniMapHeight = 10;
-        int miniMapX = screenWidth - miniMapWidth - 1;
-        int miniMapY = screenHeight - miniMapHeight - 1;
+        int miniMapWidth = 20;   
+        int miniMapHeight = 10;  
+        int miniMapX = screenWidth - miniMapWidth - 1;  
+        int miniMapY = screenHeight - miniMapHeight - 3;  
 
         Console.SetCursorPosition(miniMapX, miniMapY);
-        Console.Write("+"); 
+        Console.Write("+");  
 
         for (int x = 0; x < miniMapWidth; x++)
         {
@@ -166,7 +210,7 @@ class Program
         }
 
         Console.SetCursorPosition(miniMapX + miniMapWidth, miniMapY);
-        Console.Write("+"); 
+        Console.Write("+");  
 
         for (int y = 0; y < miniMapHeight; y++)
         {
@@ -177,8 +221,7 @@ class Program
         }
 
         Console.SetCursorPosition(miniMapX, miniMapY + miniMapHeight + 1);
-        Console.Write("+"); 
-
+        Console.Write("+");  
         for (int x = 0; x < miniMapWidth; x++)
         {
             Console.SetCursorPosition(miniMapX + x + 1, miniMapY + miniMapHeight + 1);
@@ -186,9 +229,9 @@ class Program
         }
 
         Console.SetCursorPosition(miniMapX + miniMapWidth, miniMapY + miniMapHeight + 1);
-        Console.Write("+"); 
+        Console.Write("+");  
 
-        
+
         int ballMiniMapX = (ballX * miniMapWidth) / screenWidth + miniMapX + 1;
         int ballMiniMapY = (ballY * miniMapHeight) / screenHeight + miniMapY + 1;
         Console.SetCursorPosition(ballMiniMapX, ballMiniMapY);
@@ -221,29 +264,74 @@ class Program
         {
             string gameState = System.IO.File.ReadAllText("gamestate.txt");
             string[] data = gameState.Split(',');
-            if (data.Length == 4)
-            {
-                playerName = data[0];
-                score = Convert.ToInt32(data[1]);
-                attempts = Convert.ToInt32(data[3]);
-                TimeSpan elapsed;
-                if (TimeSpan.TryParse(data[2], out elapsed))
-                {
-                    stopwatch.Reset();
-                    stopwatch.Start();
-                    stopwatch.Stop();
-                    stopwatch.Add(elapsed);
-                }
-            }
+            playerName = data[0];
+            score = int.Parse(data[1]);
+            TimeSpan timeSpan = TimeSpan.Parse(data[2]);
+            stopwatch = new Stopwatch();
+            stopwatch.Start();
+            stopwatch.Stop();
+            stopwatch.Add(timeSpan);
+            attempts = int.Parse(data[3]);
         }
     }
 
-    static void DeleteGameState()
+    static void GetPlayerName()
     {
-        if (System.IO.File.Exists("gamestate.txt"))
+        Console.Clear();
+        Console.SetCursorPosition(screenWidth / 2 - 10, screenHeight / 2 - 2);
+        Console.Write("Enter your name:");
+        Console.SetCursorPosition(screenWidth / 2 - 10, screenHeight / 2);
+        playerName = Console.ReadLine();
+    }
+
+    static void ShowShop()
+    {
+        Console.Clear();
+        Console.SetCursorPosition(screenWidth / 2 - 10, screenHeight / 2 - 2);
+        Console.Write("Welcome to the Shop!");
+        Console.SetCursorPosition(screenWidth / 2 - 10, screenHeight / 2);
+        Console.Write("1. Upgrade ball speed");
+        Console.SetCursorPosition(screenWidth / 2 - 10, screenHeight / 2 + 1);
+        Console.Write("2. Increase platform size");
+        Console.SetCursorPosition(screenWidth / 2 - 10, screenHeight / 2 + 3);
+        Console.Write("Press Enter to go back");
+    }
+
+    static void ProcessShopInput()
+    {
+        var key = Console.ReadKey(true);
+        if (key.Key == ConsoleKey.Enter)
         {
-            System.IO.File.Delete("gamestate.txt");
+            inShop = false;
+            ShowMainMenu();
         }
+        else if (key.Key == ConsoleKey.D1)
+        {
+            UpgradeBallSpeed();
+        }
+        else if (key.Key == ConsoleKey.D2)
+        {
+            IncreasePlatformSize();
+        }
+    }
+
+    static void UpgradeBallSpeed()
+    {
+        ballSpeedX += 1;
+        ballSpeedY += 1;
+        Console.Clear();
+        Console.SetCursorPosition(screenWidth / 2 - 10, screenHeight / 2);
+        Console.Write("Ball speed upgraded!");
+        Thread.Sleep(2000);
+        ShowShop();
+    }
+
+    static void IncreasePlatformSize()
+    {
+        Console.Clear();
+        Console.SetCursorPosition(screenWidth / 2 - 10, screenHeight / 2);
+        Console.Write("Platform size increased!");
+        Thread.Sleep(2000);
+        ShowShop();
     }
 }
-
